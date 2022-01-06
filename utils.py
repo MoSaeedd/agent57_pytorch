@@ -381,8 +381,8 @@ def play_episode(frame_process_func,
             episode_reward += ex_reward
             
         else:
-            if lives != info["ale.lives"] or done:  # done==True when lose life
-                lives = info["ale.lives"]
+            if lives != info["lives"] or done:  # done==True when lose life
+                lives = info["lives"]
                 transition = (prev_ex_reward, prev_in_reward, prev_action,
                               state, action, in_h, in_c, ex_h, ex_c, j,
                               True, ex_reward, in_reward, next_state)
