@@ -1,5 +1,7 @@
 import collections
 import random
+import gc 
+import psutil
 
 import gym
 import numpy as np
@@ -323,7 +325,8 @@ def play_episode(frame_process_func,
     transitions = []
 
     while not done:
-        
+        if psutil.virtual_memory().percent >= 65.0:
+            gc.collect() 
         # batching (1, n_frames, 84, 84)
         state = torch.tensor(np.stack(frames, axis=0)[None, ...]).float()
         

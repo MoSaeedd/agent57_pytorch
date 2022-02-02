@@ -2,6 +2,8 @@ import argparse
 import os
 import shutil
 import time
+import psutil
+import gc
 
 import matplotlib.pyplot as plt
 import ray
@@ -176,7 +178,8 @@ def main(args):
             agent_cycles = 0
             n_segment_added = 0
             s = time.time()
-
+            if psutil.virtual_memory().percent >= 65.0:
+                gc.collect()
     ray.shutdown()
 
     wallclocktime = round(time.time() - total_s, 2)
