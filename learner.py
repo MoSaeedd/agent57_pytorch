@@ -246,7 +246,7 @@ class Learner:
 
         with futures.ThreadPoolExecutor(max_workers=2) as executor:
             work_in_progresses = [executor.submit(self.decompress_segments, minibatch) for minibatch in minibatchs]
-
+            print("started decompress_segments ")
             for ready_minibatch in futures.as_completed(work_in_progresses):
                 indices, weights, segments = ready_minibatch.result()
                 weights = torch.sqrt(torch.tensor(weights, requires_grad=True).float()).to(self.device)
@@ -268,6 +268,7 @@ class Learner:
                 ex_q_losses.append(ex_q_loss.cpu().detach().numpy())
                 embed_losses.append(embed_loss)
                 lifelong_losses.append(lifelong_loss)
+              print("end decompress_segments ")
 
         in_q_weight = self.in_online_q_network.to('cpu').state_dict()
         ex_q_weight = self.ex_online_q_network.to('cpu').state_dict()
@@ -457,7 +458,9 @@ class Learner:
         """
 
         embed_loss = []
+        print("started embedding_net training")
         self.embedding_net.train()
+        print("finished embedding_net training")
         
         for t in range(self.burnin_len + self.unroll_len):
             
@@ -475,7 +478,9 @@ class Learner:
             embed_loss.append(loss.cpu().detach().numpy())
 
         lifelong_loss = []
+        print("started trained_lifelong_net training")
         self.trained_lifelong_net.train()
+        print("stpped trained_lifelong_net training")
         
         for t in range(self.burnin_len + self.unroll_len):
             trained_output = self.trained_lifelong_net(self.states[t])
