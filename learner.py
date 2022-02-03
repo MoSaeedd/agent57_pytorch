@@ -246,8 +246,9 @@ class Learner:
 
         with futures.ThreadPoolExecutor(max_workers=2) as executor:
             work_in_progresses = [executor.submit(self.decompress_segments, minibatch) for minibatch in minibatchs]
-            print("started decompress_segments ")
+            print("started looping on decompress_segments batces ")
             for ready_minibatch in futures.as_completed(work_in_progresses):
+                print("started networks evals ")
                 indices, weights, segments = ready_minibatch.result()
                 weights = torch.sqrt(torch.tensor(weights, requires_grad=True).float()).to(self.device)
                 
@@ -268,14 +269,17 @@ class Learner:
                 ex_q_losses.append(ex_q_loss.cpu().detach().numpy())
                 embed_losses.append(embed_loss)
                 lifelong_losses.append(lifelong_loss)
-              print("end decompress_segments ")
+                print("end networks evals ")
 
+            print("end looping on decompress_segments batces ")
+  
         in_q_weight = self.in_online_q_network.to('cpu').state_dict()
         ex_q_weight = self.ex_online_q_network.to('cpu').state_dict()
         embed_weight = self.embedding_net.to('cpu').state_dict()
         lifelong_weight = self.trained_lifelong_net.to('cpu').state_dict()
         
         self.set_device()
+        print("end network update")
 
         return in_q_weight, ex_q_weight, embed_weight, lifelong_weight, indices_all, priorities_all, \
                 np.mean(in_q_losses), np.mean(ex_q_losses), np.mean(embed_losses), np.mean(lifelong_losses)

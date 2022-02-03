@@ -124,6 +124,7 @@ def main(args):
 
     while learner_cycles <= args.n_learner_cycle:
         agent_cycles += 1
+        print("learner cycle:",learner_cycles)
         s = time.time()
         
         # get agent's experience
@@ -138,7 +139,7 @@ def main(args):
         n_segment_added += len(segments)
 
         finished_learner, _ = ray.wait([wip_learner], timeout=0)
-
+        # print("learner finished:",finished_learner)
         if finished_learner:
             in_q_weight, ex_q_weight, embed_weight, trained_lifelong_weight, indices, priorities, in_q_loss, ex_q_loss, embed_loss, lifelong_loss = ray.get(finished_learner[0])
             
@@ -178,8 +179,8 @@ def main(args):
             agent_cycles = 0
             n_segment_added = 0
             s = time.time()
-            if psutil.virtual_memory().percent >= 65.0:
-                gc.collect()
+        if psutil.virtual_memory().percent >= 65.0:
+            gc.collect()
     ray.shutdown()
 
     wallclocktime = round(time.time() - total_s, 2)
