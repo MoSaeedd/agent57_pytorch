@@ -1,6 +1,9 @@
 import pickle
 import collections
 
+import psutil
+import gc
+
 import gym
 import lz4.frame as lz4f
 import ray
@@ -134,7 +137,8 @@ class Agent:
           segments        : parts of expecimences
           self.pid        : process id
         """
-
+        if  psutil.virtual_memory().percent >= 30.0:
+            gc.collect()
         if self.num_updates % self.agent_update_period == 0:
             self.in_q_network.load_state_dict(in_q_weight)
             self.ex_q_network.load_state_dict(ex_q_weight)
@@ -146,7 +150,8 @@ class Agent:
             _priorities, _segments = self._rollout()
             priorities += _priorities
             segments += _segments
-
+            if  psutil.virtual_memory().percent >= 30.0:
+                gc.collect()
         self.num_updates += 1
         return priorities, segments, self.pid
     
@@ -158,7 +163,8 @@ class Agent:
           priorities    (list): priorities of segments when pulling segments from sum tree
           compressed_segments : compressed segments in terms of  memory capacity
         """
-        
+        if  psutil.virtual_memory().percent >= 30.0:
+            gc.collect()
         # get index from ucb
         j = self.ucb.pull_index()
         
@@ -166,7 +172,8 @@ class Agent:
         beta, self.gamma = self.betas[j], self.gammas[j]
 
         episode_buffer = EpisodeBuffer(burnin_length=self.burnin_len, unroll_length=self.unroll_len)
-
+        if  psutil.virtual_memory().percent >= 30.0:
+            gc.collect()
         ucb_datas, transitions, self.error_list = play_episode(frame_process_func=self.frame_process_func,
                                                                env_name=self.env_name,
                                                                n_frames=self.n_frames,
@@ -223,7 +230,8 @@ class Agent:
         Returns:
           qvalues (torch.tensor): Q values [unroll_len+1, batch_size, action_space]
         """
-        
+        if  psutil.virtual_memory().percent >= 30.0:
+            gc.collect()        
         for t in range(self.burnin_len):
             _, (h, c) = q_network(self.states[t],
                                    states=(h, c),
@@ -258,7 +266,8 @@ class Agent:
         Returns:
           priority       (torch.tensor): priority calculate based on td errors
         """
-        
+        if  psutil.virtual_memory().percent >= 30.0:
+            gc.collect()
         # (unroll_len, batch_size)
         Q = torch.sum(qvalues[:-1] * self.actions_onehot, dim=2)
         

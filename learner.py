@@ -17,7 +17,7 @@ from utils import (create_beta_list, create_gamma_list, get_preprocess_func,
                    transformed_retrace_operator)
 
 
-@ray.remote(num_cpus=1, num_gpus=1)
+@ray.remote(num_cpus=10, num_gpus=1)
 class Learner:
     """
     update parameter
@@ -269,8 +269,7 @@ class Learner:
                 ex_q_losses.append(ex_q_loss.cpu().detach().numpy())
                 embed_losses.append(embed_loss)
                 lifelong_losses.append(lifelong_loss)
-                print("end networks evals ")
-
+                print("end decompress_segments ")
             print("end looping on decompress_segments batces ")
   
         in_q_weight = self.in_online_q_network.to('cpu').state_dict()

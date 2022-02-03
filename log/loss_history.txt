@@ -1,0 +1,7 @@
+1th results => Agent cycle: 306, Added: 7656, InQLoss: 121.8067, ExQLoss: 0.0398, EmbeddingLoss: 1.0388, LifeLongLoss: 0.00000084 
+2th results => Agent cycle: 316, Added: 7867, InQLoss: 50.3256, ExQLoss: 0.0295, EmbeddingLoss: 1.0317, LifeLongLoss: 0.00000007 
+3th results => Agent cycle: 314, Added: 7350, InQLoss: 55.3702, ExQLoss: 0.0377, EmbeddingLoss: 1.0235, LifeLongLoss: 0.00000006 
+4th results => Agent cycle: 212, Added: 7523, InQLoss: 45.5742, ExQLoss: 0.0412, EmbeddingLoss: 1.0765, LifeLongLoss: 0.00000006 
+5th results => Agent cycle: 120, Added: 5109, InQLoss: 38.6089, ExQLoss: 0.0352, EmbeddingLoss: 1.1340, LifeLongLoss: 0.00000022 
+6th results => Agent cycle: 137, Added: 3071, InQLoss: 32.2262, ExQLoss: 0.0333, EmbeddingLoss: 1.1105, LifeLongLoss: 0.00000010 
+7th results => Agent cycle: 1, Added: 31, InQLoss: 34.8545, ExQLoss: 0.0402, EmbeddingLoss: 1.0984, LifeLongLoss: 0.00000008 
