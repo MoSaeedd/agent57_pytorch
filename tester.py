@@ -8,7 +8,7 @@ from model import EmbeddingNet, LifeLongNet, QNetwork
 from utils import UCB, create_beta_list, get_preprocess_func, play_episode
 
 
-@ray.remote(num_cpus=1)
+@ray.remote(num_cpus=10)
 class Tester:
     """
     calculate score to evaluate peformance
@@ -106,7 +106,11 @@ class Tester:
         j = self.ucb.pull_index()
         beta = self.betas[j]
         
+        print("is_score_logged:",self.is_test)
         # get episode reward
+        ep=0.0
+        if self.count<150:
+            ep=0.005
         if self.is_test:            
             _, episode_reward, self.error_list = play_episode(frame_process_func=self.frame_process_func,
                                                               env_name=self.env_name,
@@ -148,7 +152,7 @@ class Tester:
                                                          is_test=True)
             self.ucb.push_data(ucb_datas)
             self.count += 1       
-            
+        print("tester finished",self.count)   
         if self.count % self.switch_test_cycle == (self.switch_test_cycle//2):
             self.is_test = True
             self.episode_reward = []

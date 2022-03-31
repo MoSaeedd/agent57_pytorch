@@ -4,6 +4,7 @@ import shutil
 import time
 import psutil
 import gc
+import sys
 
 import matplotlib.pyplot as plt
 import ray
@@ -24,7 +25,7 @@ def main(args):
     os.makedirs("log")
 
     seed_evrything(args.seed)
-    ray.init(ignore_reinit_error=True, local_mode=False)
+    ray.init(ignore_reinit_error=True, local_mode=False,_redis_max_memory=10**10,object_store_memory=((10**10)//10))
 
     total_s = time.time()
     in_q_loss_history, ex_q_loss_history, embed_loss_history, lifelong_loss_history, score_history = [], [], [], [], []
@@ -93,6 +94,8 @@ def main(args):
                                                         lifelong_weight=trained_lifelong_weight)
                   for agent in agents]
 
+
+
     for i in range(args.n_agent_burnin):
         s = time.time()
         
@@ -124,7 +127,7 @@ def main(args):
 
     while learner_cycles <= args.n_learner_cycle:
         agent_cycles += 1
-        print("learner cycle:",learner_cycles)
+        #print("learner cycle:",learner_cycles)
         s = time.time()
         
         # get agent's experience
@@ -135,11 +138,11 @@ def main(args):
                                                                        ex_q_weight=ex_q_weight,
                                                                        embed_weight=embed_weight,
                                                                        lifelong_weight=trained_lifelong_weight)])
-            
+        #print("wip agent size:",sys.getsizeof(wip_agents))           
         n_segment_added += len(segments)
-
+        #print("replay size:",sys.getsizeof(replay_buffer))
         finished_learner, _ = ray.wait([wip_learner], timeout=0)
-        # print("learner finished:",finished_learner)
+        #print("learner finished:",finished_learner)
         if finished_learner:
             in_q_weight, ex_q_weight, embed_weight, trained_lifelong_weight, indices, priorities, in_q_loss, ex_q_loss, embed_loss, lifelong_loss = ray.get(finished_learner[0])
             
@@ -160,17 +163,19 @@ def main(args):
             ex_q_loss_history.append((learner_cycles-1, ex_q_loss))
             embed_loss_history.append((learner_cycles-1, embed_loss))
             lifelong_loss_history.append((learner_cycles-1, lifelong_loss))
-
-            test_score = ray.get(wip_tester)
-            if test_score is not None:
-                score_history.append((learner_cycles-args.switch_test_cycle, test_score))
-                with open(f"log/score_history.txt", mode="a") as f:
-                    f.write(f"Cycle: {learner_cycles}, Score: {test_score}\n")
+            print("waiting for tester")
+            if learner_cycles%50 == 0:
+                test_score = ray.get(wip_tester)
+                print("tester finished")
+                if test_score is not None:
+                    score_history.append((learner_cycles-args.switch_test_cycle, test_score))
+                    with open(f"log/score_history.txt", mode="a") as f:
+                        f.write(f"Cycle: {learner_cycles}, Score: {test_score}\n")
                     
-            wip_tester = tester.test_play.remote(in_q_weight=in_q_weight,
-                                                 ex_q_weight=ex_q_weight,
-                                                 embed_weight=embed_weight,
-                                                 lifelong_weight=trained_lifelong_weight)
+                wip_tester = tester.test_play.remote(in_q_weight=in_q_weight,
+                                                     ex_q_weight=ex_q_weight,
+                                                     embed_weight=embed_weight,
+                                                     lifelong_weight=trained_lifelong_weight)
 
             if learner_cycles % args.freq_weight_save == 0:
                 learner.save.remote(weight_dir, learner_cycles)
@@ -179,7 +184,7 @@ def main(args):
             agent_cycles = 0
             n_segment_added = 0
             s = time.time()
-        if psutil.virtual_memory().percent >= 65.0:
+        if psutil.virtual_memory().percent >= 15.0:
             gc.collect()
     ray.shutdown()
 

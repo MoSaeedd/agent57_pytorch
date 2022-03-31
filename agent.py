@@ -137,7 +137,8 @@ class Agent:
           segments        : parts of expecimences
           self.pid        : process id
         """
-        if  psutil.virtual_memory().percent >= 30.0:
+        print("agent started")
+        if  psutil.virtual_memory().percent >= 5.0:
             gc.collect()
         if self.num_updates % self.agent_update_period == 0:
             self.in_q_network.load_state_dict(in_q_weight)
@@ -150,9 +151,10 @@ class Agent:
             _priorities, _segments = self._rollout()
             priorities += _priorities
             segments += _segments
-            if  psutil.virtual_memory().percent >= 30.0:
+            if  psutil.virtual_memory().percent >= 5.0:
                 gc.collect()
         self.num_updates += 1
+        print("agent finished")
         return priorities, segments, self.pid
     
 

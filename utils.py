@@ -8,6 +8,26 @@ import numpy as np
 import torch
 from PIL import Image
 
+class FireResetEnv(gym.Wrapper):
+    """
+    Take action on reset for environments that are fixed until firing.
+    :param env: the environment to wrap
+    """
+
+    def __init__(self, env: gym.Env):
+        gym.Wrapper.__init__(self, env)
+        assert env.unwrapped.get_action_meanings()[1] == "FIRE"
+        assert len(env.unwrapped.get_action_meanings()) >= 3
+
+    def reset(self, **kwargs) -> np.ndarray:
+        self.env.reset(**kwargs)
+        obs, _, done, _ = self.env.step(1)
+        if done:
+            self.env.reset(**kwargs)
+        obs, _, done, _ = self.env.step(2)
+        if done:
+            self.env.reset(**kwargs)
+        return obs
 
 def rescaling(x):
     """
@@ -305,6 +325,7 @@ def play_episode(frame_process_func,
     """
     
     env = gym.make(env_name)
+    env = FireResetEnv(env)
     frame = frame_process_func(env.reset())
     
     # (n_frames, 84, 84)
@@ -325,7 +346,7 @@ def play_episode(frame_process_func,
     transitions = []
 
     while not done:
-        if psutil.virtual_memory().percent >= 65.0:
+        if psutil.virtual_memory().percent >= 0.5:
             gc.collect() 
         # batching (1, n_frames, 84, 84)
         state = torch.tensor(np.stack(frames, axis=0)[None, ...]).float()
@@ -380,9 +401,15 @@ def play_episode(frame_process_func,
         
         in_reward = episodic_reward * np.clip(curiosity, 1, L)
 
-        if is_test:
+        if is_test and len(ucb_datas)%1000==0:
             episode_reward += ex_reward
-            
+            print("Testing lives:",info["lives"])
+            print("virtual memory percent:",psutil.virtual_memory().percent)
+            print("M length:",len(M))
+            print("error length:",len(error_list))
+            print("transitions len",len(transitions))
+            print("UCB data len:",len(ucb_datas))
+            print(action)
         else:
             if lives != info["lives"] or done:  # done==True when lose life
                 lives = info["lives"]
