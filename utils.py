@@ -54,7 +54,24 @@ def get_preprocess_func(env_name):
     else:
         raise NotImplementedError(f"Frame processor not implemeted for {env_name}")
 
+class FireResetEnv(gym.Wrapper):
+	def __init__(self, env):
+		"""Take action on reset for environments that are fixed until firing."""
+		gym.Wrapper.__init__(self, env)
+		assert env.unwrapped.get_action_meanings()[1] == 'FIRE'
+		assert len(env.unwrapped.get_action_meanings()) >= 3
 
+	def _reset(self, **kwargs):
+		self.env.reset(**kwargs)
+		obs, _, done, _ = self.env.step(1)
+		if done:
+			self.env.reset(**kwargs)
+		obs, _, done, _ = self.env.step(2)
+		if done:
+			self.env.reset(**kwargs)
+		return obs
+
+  
 def _preprocess_breakout(frame, resize=84):
     """
     preprocess function for breakout
@@ -305,6 +322,7 @@ def play_episode(frame_process_func,
     """
     
     env = gym.make(env_name)
+    env = FireResetEnv(env)
     frame = frame_process_func(env.reset())
     
     # (n_frames, 84, 84)
@@ -323,8 +341,8 @@ def play_episode(frame_process_func,
     M = collections.deque(maxlen=int(1e3))
     ucb_datas = []
     transitions = []
-
-    while not done:
+    step_count = 0
+    while not done and step_count<30000:
         if psutil.virtual_memory().percent >= 65.0:
             gc.collect() 
         # batching (1, n_frames, 84, 84)
@@ -355,6 +373,7 @@ def play_episode(frame_process_func,
 
         # step enviroment
         next_frame, ex_reward, done, info = env.step(action)
+        step_count +=1
         frames.append(frame_process_func(next_frame))
         
         # batching (1, n_frames, 84, 84)

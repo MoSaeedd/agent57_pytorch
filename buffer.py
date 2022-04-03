@@ -58,7 +58,7 @@ class EpisodeBuffer:
         """
         
         segments = []
-
+        #starts at brnin_len increments by  unroll_len and stops at transition length
         for t in range(self.burnin_len, len(self.transitions), self.unroll_len):
             if (t + self.unroll_len) > len(self.transitions):
                 total_len = self.burnin_len + self.unroll_len
