@@ -146,6 +146,7 @@ class Agent:
             _priorities, _segments = self._rollout()
             priorities += _priorities
             segments += _segments
+            print('Process ID:',pid, "segments length:",len(_segments))
 
         self.num_updates += 1
         return priorities, segments, self.pid

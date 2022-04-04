@@ -320,7 +320,7 @@ def play_episode(frame_process_func,
       beta              (float): coefficient to decide weights between intrinsic qvalues and extrinsic qvalues
       is_test            (bool): flag indicating whether it is a test or not
     """
-    
+    print('new episode')
     env = gym.make(env_name)
     env = FireResetEnv(env)
     frame = frame_process_func(env.reset())
@@ -342,7 +342,7 @@ def play_episode(frame_process_func,
     ucb_datas = []
     transitions = []
     step_count = 0
-    while not done and step_count<30000:
+    while not done and step_count<3000:
         if psutil.virtual_memory().percent >= 65.0:
             gc.collect() 
         # batching (1, n_frames, 84, 84)

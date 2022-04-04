@@ -125,6 +125,7 @@ def main(args):
     while learner_cycles <= args.n_learner_cycle:
         agent_cycles += 1
         # print("learner cycle:",learner_cycles)
+        print("agent cycle:",agent_cycles)
         s = time.time()
         
         # get agent's experience
