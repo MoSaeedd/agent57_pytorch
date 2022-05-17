@@ -342,7 +342,7 @@ def play_episode(frame_process_func,
     ucb_datas = []
     transitions = []
     step_count = 0
-    while not done and step_count<3000:
+    while not done and step_count<27500:
         if psutil.virtual_memory().percent >= 65.0:
             gc.collect() 
         # batching (1, n_frames, 84, 84)
